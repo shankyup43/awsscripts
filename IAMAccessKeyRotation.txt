@@ -1,0 +1,69 @@
+#!/usr/bin/python3
+################# Author Name : Shashank Sharma #################
+################# Author Email: shankyup43@gmail.com ###
+ 
+import boto3, smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from datetime import datetime, timezone
+ 
+iam_client = boto3.client('iam')
+ 
+list_users_a = iam_client.list_users()
+age_dict = {}
+def ak_age(user_name):
+        access_dict = iam_client.list_access_keys(UserName = user_name)
+        i = 0
+        while i < len(access_dict['AccessKeyMetadata']):
+                if access_dict['AccessKeyMetadata'][i]['Status'] == 'Active':
+                        create_date = access_dict['AccessKeyMetadata'][i]['CreateDate']
+                        age_keys = datetime.now(timezone.utc) - create_date
+                        diff = age_keys.days
+                        age_dict[user_name] = diff
+                i += 1
+        return age_dict
+ 
+def create_key(user):
+        new_keys = iam_client.create_access_key(UserName = user)
+        access_k = new_keys['AccessKey']['AccessKeyId']
+        secret_k = new_keys['AccessKey']['SecretAccessKey']
+        return access_k, secret_k
+ 
+access_k, secret_k = create_key()
+ 
+def send_mail(user_n, user_mail, acc_key, sec_key):
+        setup = smtplib.SMTP(host = 'localhost', port = 25)
+        setup.starttls()
+        name_add = user_n#Need to change
+        email_add = user_mail#Need to change
+        i = 0
+        for i in range(len(email_add)):
+                msg_email = MIMEMultipart()
+                email_name = name_add[i]#Need to change
+                email_id = email_add[i]#Need to change
+                mail_body = "Hi,\nThis is a system generated email to notify you that Access Keys for your username:%s are older than 90 days.\nIn order to maintain security of AWS environment, your new keys have been generated.\nNew Access Key:%s\nSecret Key:%s\nPlease update the new keys in your application in next 72 Hrs and deactivate the old one.\n\nRegards,\nSupport Team\n\nNOTE: DO NOT REPLY TO THIS EMAIL" % (email_name, acc_key, sec_key)
+                msg_email['From'] = "abc@abc.com"#Need to change
+                msg_email['To'] = email_id#Need to change
+                msg_email['Subject'] = "AWS Access Keys Rotation"
+                msg_email.attach(MIMEText(mail_body, 'plain'))
+                setup.send_message(msg_email)
+                del msg_email
+                print("New Access Keys have been sent to %s with Email ID: %s" % (email_name, email_id))
+        setup.quit()
+        print("New Access Keys have been forwarded to ")#Need to update
+ 
+#Specify the usernames which do not require Access Keys rotation#
+user_list = ['service_1', 'service_2', 'service_3']
+ 
+list_users_b = list_users_a['Users']
+size = len(list_users_b)
+new_list = []
+ 
+for user in list_users_b:
+        if user['UserName'] not in user_list:
+                new_list.append(user['UserName'])
+for item in new_list:
+        ak_age(item)
+        if age_dict[item] > 90:
+                create_key(item)
+                send_mail(user_n = item, user_mail = u_mail, acc_key = access_k, sec_key = secret_k)

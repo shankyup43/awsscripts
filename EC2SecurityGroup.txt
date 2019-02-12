@@ -1,0 +1,23 @@
+#!/usr/bin/python3
+################# Author Name : Shashank Sharma #################
+################# Author Email: shankyup43@gmail.com ###
+
+import boto3
+
+ 
+
+inst_client = boto3.client('ec2')
+
+ 
+
+des_instance = inst_client.describe_instances()
+
+list_ins = des_instance['Reservations']
+
+ 
+
+for item in list_ins:
+
+        for yom in item['Instances'][0]['SecurityGroups']:
+
+                print("%s:%s:%s" % (item['Instances'][0]['InstanceId'], yom['GroupId'], item['Instances'][0]['State']['Name']))

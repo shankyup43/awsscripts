@@ -1,0 +1,61 @@
+import boto3, csv, json, re
+
+ 
+
+dns_client = boto3.client('route53')
+
+hosted_zones = dns_client.list_hosted_zones()
+
+hz1 = hosted_zones['HostedZones']
+
+ 
+
+list_zones = []
+
+ 
+
+for i in range(len(hz1)):
+
+        list_zones.append(hz1[i]['Id'].strip("/hostedzone/"))
+
+ 
+
+ 
+
+def list_rec(zone_id):
+
+        list_records = dns_client.list_resource_record_sets(HostedZoneId = zone_id)
+
+        list_v = list_records['ResourceRecordSets']
+
+        list_a = []
+
+        for m in list_v:
+
+                list_a.append(json.dumps(m))
+
+        n = 0
+
+        while n < len(list_a):
+
+                list_a[n] = re.sub("[{\"}]", '', list_a[n])
+
+                n = n + 1
+
+        file_name = zone_id + '.csv'
+
+        with open(file_name, 'w') as list_b:
+
+                for yo in list_a:
+
+                        write_csv = csv.writer(list_b)
+
+                        write_csv.writerow([yo])
+
+        list_b.close()
+
+ 
+
+for item in list_zones:
+
+        list_rec(item)

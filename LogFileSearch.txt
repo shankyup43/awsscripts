@@ -1,0 +1,41 @@
+#!/usr/bin/python3
+################# Author Name : Shashank Sharma #################
+################# Author Email: shankyup43@gmail.com ###
+
+import json, os, glob
+
+ 
+
+def event_capture(event_file):
+
+        with open(event_file, 'r') as next_file:
+
+                json_data = json.loads(next_file.read())
+
+                tam = json_data['Records']
+
+        i = 0
+
+        while i < len(tam):
+
+                if tam[i]['requestParameters'] == {"autoScalingGroupNames":["awseb-e-5vnkkhbhxu-stack-AWSEBAutoScalingGroup-8O9VIZC3ISI0"]}:
+
+                        print(tam[i])
+
+                print("\n")
+
+                i = i + 1
+
+ 
+
+ 
+
+path_folder = "/home/shashank1/logs/logs_8Oct2018"
+
+comp_path =  os.path.join(path_folder, "*.json")
+
+for each_file in glob.glob(comp_path):
+
+        if 'awseb-e-5vnkkhbhxu-stack-AWSEBAutoScalingGroup-8O9VIZC3ISI0' in open(each_file).read():
+
+                event_capture(each_file)

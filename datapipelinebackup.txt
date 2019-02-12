@@ -1,0 +1,32 @@
+#!/usr/bin/python3
+################# Author Name : Shashank Sharma #################
+################# Author Email: shankyup43@gmail.com ###
+
+import subprocess
+ 
+def write_out(pipe_id):
+        new_f = pipe_id + '.txt'
+        comm = ['/usr/local/bin/aws', 'datapipeline', 'get-pipeline-definition', '--pipeline-id', pipe_id]
+        #co_shoot = subprocess.call(comm, stdout = out_file)
+        with open(new_f, 'w') as out_file:
+                co_shoot = subprocess.call(comm, stdout = out_file)
+        out_file.close()
+ 
+com_list = "/usr/local/bin/aws datapipeline list-pipelines | grep \"df-*\" | awk -F ':' '{ print $2; }'"
+ 
+with open('datapipe_list.txt', 'w') as file_dope:
+        comcom = subprocess.call(com_list, stdout = file_dope, shell = True)
+file_dope.close()
+ 
+list_n = []
+with open('datapipe_list.txt', 'r') as file_op:
+        for line in file_op:
+                p = line.replace("\"", "")
+                o = p.replace(',', '')
+                q = o.strip("\n")
+                z = q.strip()
+                list_n.append(z)
+file_op.close()
+ 
+for i in list_n:
+        write_out(i)
