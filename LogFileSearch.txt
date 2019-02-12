@@ -18,7 +18,7 @@ def event_capture(event_file):
 
         while i < len(tam):
 
-                if tam[i]['requestParameters'] == {"autoScalingGroupNames":["awseb-e-5vnkkhbhxu-stack-AWSEBAutoScalingGroup-8O9VIZC3ISI0"]}:
+                if tam[i]['requestParameters'] == {"autoScalingGroupNames":["awseb-e-5vnkkhbhxu-stack-AWSEBAutoScalingGroup-xxxxxx"]}:
 
                         print(tam[i])
 
@@ -36,6 +36,6 @@ comp_path =  os.path.join(path_folder, "*.json")
 
 for each_file in glob.glob(comp_path):
 
-        if 'awseb-e-5vnkkhbhxu-stack-AWSEBAutoScalingGroup-8O9VIZC3ISI0' in open(each_file).read():
+        if 'awseb-e-5vnkkhbhxu-stack-AWSEBAutoScalingGroup-xxxxxx' in open(each_file).read():
 
                 event_capture(each_file)
