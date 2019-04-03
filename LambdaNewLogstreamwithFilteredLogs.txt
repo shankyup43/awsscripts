@@ -1,0 +1,49 @@
+import json
+
+import boto3
+
+import base64, gzip
+
+import time
+
+import datetime
+
+ 
+
+def lambda_handler(event, context):
+
+    c_dt = datetime.datetime.now()
+
+    conv_time = int(round(c_dt.timestamp() * 1000))
+
+    cwlogs = boto3.client('logs')
+
+   
+
+    des_stream = cwlogs.describe_log_streams(logGroupName = 'POCTEST2', logStreamNamePrefix = 'UpdatedLogs')
+
+    tok = des_stream['logStreams'][0]['uploadSequenceToken']
+
+    x = event["awslogs"]["data"]
+
+    y = base64.b64decode(x)
+
+    bat = gzip.decompress(y)
+
+    z = json.loads(bat)
+
+    mam = z['logEvents'][0]['message']
+
+   
+
+    u_logs = cwlogs.put_log_events(logGroupName='POCTEST2', logStreamName='UpdatedLogs', logEvents=[{'timestamp': conv_time,'message': mam}], sequenceToken = tok)
+
+    # TODO implement
+
+    return {
+
+        'statusCode': 200,
+
+        'body': json.dumps('Hello from Lambda!')
+
+    }

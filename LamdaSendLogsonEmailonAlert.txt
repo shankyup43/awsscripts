@@ -1,0 +1,101 @@
+import base64, gzip
+
+import time
+
+import datetime
+
+from email.mime.multipart import MIMEMultipart
+
+from email.mime.text import MIMEText
+
+from email.mime.application import MIMEApplication
+
+ 
+
+def lambda_handler(event, context):
+
+    c_dt = datetime.datetime.now()
+
+    end_time = int(round(c_dt.timestamp() * 1000))
+
+    start_time = end_time - 300000
+
+    cwlogs = boto3.client('logs')
+
+   
+
+    get_logs = cwlogs.get_log_events(logGroupName = "/home/ec2-user/access.log", logStreamName = "POCLOGS", startTime = start_time, endTime = end_time)
+
+    log_list = get_logs['events']
+
+    with open("/tmp/last5minlogs.log", "a") as new_file:
+
+        for i in log_list:
+
+                        new_file.write(i['message'] + "\n")
+
+    new_file.close()
+
+    sender = "<email address>"
+
+    recipient = "<email address>"
+
+    aws_region = "us-east-1"
+
+    subject = "An Alarm has raised for DDP_AGW_Request_Denied for AG2"
+
+    attachment = "/tmp/last5minlogs.log"
+
+    body_text = "Hello,\r\nPlease review the attached logs."
+
+    charset = "utf-8"
+
+ 
+
+    ses_client = boto3.client('ses',region_name=aws_region)
+
+    msg = MIMEMultipart('mixed')
+
+    msg['Subject'] = subject
+
+    msg['From'] = sender
+
+    msg['To'] = recipient
+
+   
+
+    msg_body = MIMEMultipart('alternative')
+
+ 
+
+    text_msg = MIMEText(body_text.encode(charset), 'plain', charset)
+
+    msg_body.attach(text_msg)
+
+    attach_logs = MIMEApplication(open(attachment, 'rb').read())
+
+   
+
+    attach_logs.add_header('Content-Disposition','attachment',filename=os.path.basename(attachment))
+
+    msg.attach(msg_body)
+
+   
+
+    msg.attach(attach_logs)
+
+   
+
+    send_email = ses_client.send_raw_email(Source=sender, Destinations=[recipient], RawMessage={'Data':msg.as_string()})
+
+    print(send_email['MessageId'])
+
+    # TODO implement
+
+    return {
+
+        'statusCode': 200,
+
+       'body': json.dumps('Hello from Lambda!')
+
+    }
